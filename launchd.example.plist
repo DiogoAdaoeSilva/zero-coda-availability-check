@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>local.zerocoda.bande-nere-monitor</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/diogocruz/Documents/Alert-Tessera-apointment/zc_monitor.py</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/diogocruz/Documents/Alert-Tessera-apointment</string>
+  <key>StartInterval</key>
+  <integer>300</integer>
+  <key>StandardOutPath</key>
+  <string>/tmp/zerocoda-bande-nere-monitor.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/zerocoda-bande-nere-monitor.err</string>
+</dict>
+</plist>

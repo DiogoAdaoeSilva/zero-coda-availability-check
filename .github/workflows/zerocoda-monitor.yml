@@ -1,0 +1,82 @@
+name: Zerocoda appointment monitor
+
+on:
+  schedule:
+    - cron: "2-59/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      test_telegram:
+        description: "Send a Telegram test message instead of checking appointments"
+        required: false
+        default: false
+        type: boolean
+      simulate_available:
+        description: "Send a realistic test alert as if an appointment were found"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zerocoda-appointment-monitor
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run unit tests
+        run: python3 -m unittest -v
+
+      - name: Restore notification state
+        uses: actions/cache/restore@v4
+        with:
+          path: .zc-monitor-state.json
+          key: zerocoda-monitor-state-${{ github.run_id }}
+          restore-keys: |
+            zerocoda-monitor-state-
+
+      - name: Validate Telegram secrets
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID repository secrets are required." >&2
+            exit 1
+          fi
+
+      - name: Send Telegram test message
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.test_telegram && !inputs.simulate_available }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 zc_monitor.py --test-telegram
+
+      - name: Send simulated appointment alert
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.simulate_available }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 zc_monitor.py --simulate-available --notify --require-telegram --state-file .zc-monitor-simulation-state.json
+
+      - name: Check appointment availability
+        id: check_appointment
+        if: ${{ github.event_name != 'workflow_dispatch' || (!inputs.test_telegram && !inputs.simulate_available) }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ZC_API_KEY: ${{ secrets.ZC_API_KEY }}
+        run: python3 zc_monitor.py --exit-zero-if-unavailable --require-telegram
+
+      - name: Save notification state
+        if: ${{ steps.check_appointment.outcome == 'success' && hashFiles('.zc-monitor-state.json') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: .zc-monitor-state.json
+          key: zerocoda-monitor-state-${{ github.run_id }}
