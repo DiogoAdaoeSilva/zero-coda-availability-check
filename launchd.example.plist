@@ -4,7 +4,7 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>local.zerocoda.bande-nere-monitor</string>
+  <string>local.zerocoda.sceltarevoca-monitor</string>
   <key>ProgramArguments</key>
   <array>
     <string>/usr/bin/python3</string>
@@ -15,8 +15,8 @@
   <key>StartInterval</key>
   <integer>300</integer>
   <key>StandardOutPath</key>
-  <string>/tmp/zerocoda-bande-nere-monitor.log</string>
+  <string>/tmp/zerocoda-sceltarevoca-monitor.log</string>
   <key>StandardErrorPath</key>
-  <string>/tmp/zerocoda-bande-nere-monitor.err</string>
+  <string>/tmp/zerocoda-sceltarevoca-monitor.err</string>
 </dict>
 </plist>

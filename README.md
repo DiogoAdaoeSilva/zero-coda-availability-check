@@ -1,13 +1,22 @@
-# Bande Nere Zerocoda Appointment Alert
+# Zerocoda Appointment Alert
 
 This monitors the Zerocoda API and alerts you when an appointment appears for:
 
-- Facility: `Bande Nere - Ufficio Scelta e Revoca`
-- Facility ID: `2061`
 - Service: `Scelta / Revoca / Cambio del medico`
-- Service ID: `30552`
+- Search point: `45.45877,9.157912`
+- Scope: every offered location returned by the booking search
 
 It does not book a slot automatically. Booking would require the personal-data flow on Zerocoda and may involve CAPTCHA or confirmation steps, so this monitor focuses on fast notification without accidentally holding slots.
+
+The monitor checks every offered service/facility pair returned by the booking search. At the time this was configured, that search returned these locations:
+
+- `Stromboli - Ufficio Scelta e Revoca`
+- `Bande Nere - Ufficio Scelta e Revoca`
+- `Gola - Ufficio Scelta e Revoca`
+- `Odazio - Ufficio Scelta e Revoca`
+- `Monreale - Ufficio Scelta e Revoca`
+- `Masaniello - Ufficio Scelta e Revoca`
+- `Baroni - Ufficio Scelta e Revoca`
 
 ## Run Locally
 
@@ -103,11 +112,11 @@ How to know it is running:
 - In GitHub, open `Actions` -> `Zerocoda appointment monitor`.
 - A manual run with `test_telegram` enabled should show `Sent Telegram test message.` and your phone should receive it.
 - A manual run with `simulate_available` enabled should send a message beginning with `TEST: Appointment available`.
-- Each run should show the line `No availability at Bande Nere - Ufficio Scelta e Revoca.` until a slot appears.
+- Each run should show a line like `No availability at any of 7 offered locations.` until a slot appears.
 - When a slot appears, the workflow sends you a Telegram message with the booking link.
 - Scheduled runs appear in the same workflow page. If you do not see scheduled runs after pushing to the default branch, check that Actions are enabled and that the workflow file is on that default branch.
 
-The workflow keeps `.zc-monitor-state.json` in the GitHub Actions cache to avoid repeated Telegram alerts while availability remains unchanged. It restores the newest `zerocoda-monitor-state-*` cache and saves a fresh cache only after a successful real availability check, so a temporary Zerocoda or Telegram failure will not mark an appointment as already alerted. Simulated alerts use a separate state file and do not affect the real monitor. GitHub schedules are not real-time and can occasionally be delayed, but this is much more reliable than a laptop that sleeps.
+The workflow keeps `.zc-monitor-state.json` in the GitHub Actions cache to avoid repeated Telegram alerts for the same available slot/location while availability remains unchanged. If a different offered location or a different slot becomes available, the monitor alerts again. It restores the newest `zerocoda-monitor-state-*` cache and saves a fresh cache only after a successful real availability check, so a temporary Zerocoda or Telegram failure will not mark an appointment as already alerted. Simulated alerts use a separate state file and do not affect the real monitor. GitHub schedules are not real-time and can occasionally be delayed, but this is much more reliable than a laptop that sleeps.
 
 Booking URL:
-<https://asst-santipaolocarlo.zerocoda.it/prenotazione/?zc_f=Scelta+%2F+Revoca+%2F+Cambio+del+medico&zc_p=45.45877%2C9.157912&zc_s=a>
+<https://asst-santipaolocarlo.zerocoda.it/prenotazione/?zc_f=Scelta+%2F+Revoca+%2F+Cambio+del+medico&zc_p=45.45877%2C9.157912&zc_s=d>
